@@ -35,7 +35,7 @@ def psql_import(sql_file, as_user=None):
     # Make sure file is readable by postgres user
     os.chmod(temp_file, 0644)
     subprocess.check_output(
-        ["su", "-s", "/bin/sh", "-c", "psql -v ON_ERROR_STOP=1 -f %s" % temp_file, as_user])
+        ["su", "-s", "/bin/sh", "-c", "psql -h pg -v ON_ERROR_STOP=1 -f %s" % temp_file, as_user])
     os.unlink(temp_file)
 
 def add_arguments(mode, parser):
@@ -91,7 +91,8 @@ backup of the database first is strongly recommended.
 
     data["installation.database.driver"] = "postgresql"
     data["installation.database.parameters"] = { "database": "critic",
-                                                 "user": data["installation.system.username"] }
+                                                 "user": data["installation.system.username"],
+                                                 "host": "pg" }
 
     return True
 
@@ -140,10 +141,10 @@ def install(data):
     # 'root_dir', so set cwd to something that Critic system / "postgres" users
     # has access to.
     with installation.utils.temporary_cwd():
-        subprocess.check_output(["su", "-c", "psql -v ON_ERROR_STOP=1 -c 'CREATE USER \"%s\";'" % installation.system.username, "postgres"])
+        subprocess.check_output(["su", "-c", "psql -h pg -v ON_ERROR_STOP=1 -c 'CREATE USER \"%s\";'" % installation.system.username, "postgres"])
         user_created = True
 
-        subprocess.check_output(["su", "-c", "psql -v ON_ERROR_STOP=1 -c 'CREATE DATABASE \"critic\";'", "postgres"])
+        subprocess.check_output(["su", "-c", "psql -h pg -v ON_ERROR_STOP=1 -c 'CREATE DATABASE \"critic\";'", "postgres"])
         database_created = True
 
         try:
@@ -158,7 +159,7 @@ def install(data):
             # since they define PL/pgSQL functions.
             pass
 
-        subprocess.check_output(["su", "-c", "psql -v ON_ERROR_STOP=1 -c 'GRANT ALL ON DATABASE \"critic\" TO \"%s\";'" % installation.system.username, "postgres"])
+        subprocess.check_output(["su", "-c", "psql -h pg -v ON_ERROR_STOP=1 -c 'GRANT ALL ON DATABASE \"critic\" TO \"%s\";'" % installation.system.username, "postgres"])
 
         for schema_file in SCHEMA_FILES:
             psql_import(schema_file)
@@ -219,8 +220,8 @@ def upgrade(arguments, data):
 
 def undo():
     if language_created:
-        subprocess.check_output(["su", "-c", "droplang plpgsql critic", "postgres"])
+        subprocess.check_output(["su", "-c", "droplang -h pg plpgsql critic", "postgres"])
     if database_created:
-        subprocess.check_output(["su", "-c", "psql -v ON_ERROR_STOP=1 -c 'DROP DATABASE \"critic\";'", "postgres"])
+        subprocess.check_output(["su", "-c", "psql -h pg -v ON_ERROR_STOP=1 -c 'DROP DATABASE \"critic\";'", "postgres"])
     if user_created:
-        subprocess.check_output(["su", "-c", "psql -v ON_ERROR_STOP=1 -c 'DROP USER \"%s\";'" % installation.system.username, "postgres"])
+        subprocess.check_output(["su", "-c", "psql -h pg -v ON_ERROR_STOP=1 -c 'DROP USER \"%s\";'" % installation.system.username, "postgres"])
