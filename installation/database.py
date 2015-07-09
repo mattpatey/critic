@@ -185,7 +185,7 @@ def install(data):
                adapt(installation.system.hostname), adapt(data["sha1"])))
 
         installation.process.check_input(
-            ["su", "-s", "/bin/sh", "-c", "psql -q -v ON_ERROR_STOP=1 -f -", installation.system.username],
+            ["su", "-s", "/bin/sh", "-c", "psql -h pg -q -v ON_ERROR_STOP=1 -f -", installation.system.username],
             stdin=add_systemidentity_query)
 
     return True
