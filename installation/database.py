@@ -26,6 +26,7 @@ import installation
 user_created = False
 database_created = False
 language_created = False
+database_host = "localhost"
 
 def psql_import(sql_file, as_user=None):
     if as_user is None:
@@ -42,7 +43,7 @@ def add_arguments(mode, parser):
     global database_host
 
     if mode == "install":
-        parser.add_argument("--database-host", dest="database_host", default="localhost",
+        parser.add_argument("--database-host", dest="database_host",
                             help="database host to use for Critic, defaults to localhost")
     else:
         database_host = data["installation.database.parameters"]["host"]
