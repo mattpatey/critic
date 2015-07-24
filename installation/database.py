@@ -41,7 +41,7 @@ def psql_import(sql_file, as_user=None):
 
 def add_arguments(mode, parser):
     if mode == "install":
-        parser.add_argument("--database-host", dest="database_host",
+        parser.add_argument("--database-host", dest="database_host", default="localhost",
                             help="database host to use for Critic, defaults to localhost")
 
     if mode == "upgrade":
