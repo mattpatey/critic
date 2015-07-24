@@ -40,13 +40,9 @@ def psql_import(sql_file, as_user=None):
     os.unlink(temp_file)
 
 def add_arguments(mode, parser):
-    global database_host
-
     if mode == "install":
         parser.add_argument("--database-host", dest="database_host",
                             help="database host to use for Critic, defaults to localhost")
-    else:
-        database_host = data["installation.database.parameters"]["host"]
 
     if mode == "upgrade":
         parser.add_argument("--backup-database", dest="database_backup", action="store_const", const=True,
@@ -55,6 +51,8 @@ def add_arguments(mode, parser):
                             help="do not backup database before upgrading")
 
 def prepare(mode, arguments, data):
+    global database_host
+
     if mode == "upgrade":
         default_path = os.path.join(data["installation.paths.data_dir"],
                                     "backups",
@@ -98,6 +96,9 @@ backup of the database first is strongly recommended.
                      data["installation.system.username"]],
 
                     stdout=output_file)
+        database_host = data["installation.database.parameters"]["host"]
+    elif mode == "install":
+        database_host = arguments.database_host
 
     data["installation.database.driver"] = "postgresql"
     data["installation.database.parameters"] = { "database": "critic",
